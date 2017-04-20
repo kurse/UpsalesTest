@@ -13,7 +13,7 @@ test:
 #        # start the emulator
         #run jvm unit tests
         - ./gradlew test -PdisablePreDex
-        - emulator -avd circleci-android21 -no-audio -no-window:
+        - emulator -avd circleci-android24 -no-audio -no-window:
            background: true
            parallel: true
         # wait for it to have booted
