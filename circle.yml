@@ -1,30 +1,28 @@
 machine:
-  environment:
-    PATH: "~/$CIRCLE_PROJECT_REPONAME/gradle-2.9/bin:$PATH"
-    TERM: "dumb"
-    ADB_INSTALL_TIMEOUT: "10"
-    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+    environment:
 
 dependencies:
-  pre:
-    - wget "https://services.gradle.org/distributions/gradle-2.9-bin.zip"; unzip gradle-2.9-bin.zip
-    - echo y | android update sdk --no-ui --all --filter tool,extra-android-m2repository,extra-android-support,extra-google-google_play_services,extra-google-m2repository,android-23
-    - echo y | android update sdk --no-ui --all --filter build-tools-23.0.2
+    override:
+        - chmod +x gradlew
+        - ./gradlew dependencies
 
 test:
-  override:
-    # start the emulator
-    - emulator -avd circleci-android22 -no-audio -no-window:
-        background: true
-        parallel: true
-    # wait for it to have booted
-    - circle-android wait-for-boot
-    # unlock the emulator screen
-    - sleep 30
-    - adb shell input keyevent 82
-    # run tests  against the emulator.
-    - ./gradlew connectedAndroidTest -PdisablePreDex
-    # copy the build outputs to artifacts
-    - cp -r app/build/outputs $CIRCLE_ARTIFACTS
-    # copy the test results to the test results directory.
-    - cp -r app/build/outputs/androidTest-results/* $CIRCLE_TEST_REPORTS
+    override:
+        #assemble the apk if tests were successful
+        - ./gradlew clean assembleDebug -PdisablePreDex
+#        # start the emulator
+        #run jvm unit tests
+        - ./gradlew test -PdisablePreDex
+        - emulator -avd circleci-android21 -no-audio -no-window:
+           background: true
+           parallel: true
+        # wait for it to have booted
+        - circle-android wait-for-boot
+        - adb shell input keyevent 82
+        # run tests  against the emulator.
+        - ./gradlew connectedDebugAndroidTest
+        - cp -r app/build/outputs/androidTest-results $CIRCLE_TEST_REPORTS
+        # copy the test results to the test results directory.
+        - cp -r app/build/outputs $CIRCLE_ARTIFACTS
+        - cp -r app/build/test-results $CIRCLE_TEST_REPORTS
+        - cp -r app/build/reports $CIRCLE_TEST_REPORTS
