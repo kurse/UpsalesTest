@@ -4,3 +4,6 @@ test:
         environment:
           JUNIT_REPORT_PATH: $CIRCLE_TEST_REPORTS/junit/
           JUNIT_REPORT_NAME: test-results.xml
+  post:
+      - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+      - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
